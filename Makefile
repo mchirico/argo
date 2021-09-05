@@ -5,8 +5,8 @@ help: ## display make targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(word 1, $(MAKEFILE_LIST)) | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m make %-20s ... %s\n\033[0m", $$1, $$2}'
 
-.PHONY: kind
-kind: ## setup local kind cluster only
+.PHONY: why-not-work
+why-not-work: ## rights issues on site
 	@bash -c "cd infra/site && ./create.sh"
 	@bash -c "kind create cluster --name argo --config infra/site/kind-config-with-mounts.yaml"
 	@bash -c "kubectl create ns argo"
