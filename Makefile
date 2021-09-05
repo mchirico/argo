@@ -3,7 +3,7 @@
 default: help
 help: ## display make targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(word 1, $(MAKEFILE_LIST)) | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m make %-20s -> %s\n\033[0m", $$1, $$2}'
+		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m make %-20s ... %s\n\033[0m", $$1, $$2}'
 
 .PHONY: up-kind
 up-kind: ## setup local kind cluster. Install argo workflows and run workflow
