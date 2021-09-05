@@ -5,6 +5,16 @@ help: ## display make targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(word 1, $(MAKEFILE_LIST)) | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m make %-20s ... %s\n\033[0m", $$1, $$2}'
 
+.PHONY: kind
+kind: ## setup local kind cluster only
+	@bash -c "cd infra/site && ./create.sh"
+	@bash -c "kind create cluster --name argo --config infra/site/kind-config-with-mounts.yaml"
+	@bash -c "kubectl create ns argo"
+	@bash -c "kubectl apply -n argo -f infra/site/install.yaml"
+	@bash -c "kubectl apply -n argo -f infra/site/quick-start-postgres.yaml"
+	@bash -c "kubectl -n argo create rolebinding default-admin --clusterrole=admin --serviceaccount=argo:default"
+
+
 .PHONY: up-kind
 up-kind: ## setup local kind cluster. Install argo workflows and run workflow
 	@bash -c "cd infra/local && ./create.sh"
