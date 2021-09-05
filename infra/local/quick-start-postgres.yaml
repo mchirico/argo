@@ -27,7 +27,6 @@ spec:
             type: object
           spec:
             type: object
-            x-kubernetes-map-type: atomic
             x-kubernetes-preserve-unknown-fields: true
         required:
         - metadata
@@ -64,11 +63,9 @@ spec:
             type: object
           spec:
             type: object
-            x-kubernetes-map-type: atomic
             x-kubernetes-preserve-unknown-fields: true
           status:
             type: object
-            x-kubernetes-map-type: atomic
             x-kubernetes-preserve-unknown-fields: true
         required:
         - metadata
@@ -104,7 +101,6 @@ spec:
             type: object
           spec:
             type: object
-            x-kubernetes-map-type: atomic
             x-kubernetes-preserve-unknown-fields: true
         required:
         - metadata
@@ -150,11 +146,9 @@ spec:
             type: object
           spec:
             type: object
-            x-kubernetes-map-type: atomic
             x-kubernetes-preserve-unknown-fields: true
           status:
             type: object
-            x-kubernetes-map-type: atomic
             x-kubernetes-preserve-unknown-fields: true
         required:
         - metadata
@@ -163,46 +157,6 @@ spec:
     served: true
     storage: true
     subresources: {}
----
-apiVersion: apiextensions.k8s.io/v1
-kind: CustomResourceDefinition
-metadata:
-  name: workflowtasksets.argoproj.io
-spec:
-  group: argoproj.io
-  names:
-    kind: WorkflowTaskSet
-    listKind: WorkflowTaskSetList
-    plural: workflowtasksets
-    shortNames:
-    - wfts
-    singular: workflowtaskset
-  scope: Namespaced
-  versions:
-  - name: v1alpha1
-    schema:
-      openAPIV3Schema:
-        properties:
-          apiVersion:
-            type: string
-          kind:
-            type: string
-          metadata:
-            type: object
-          spec:
-            type: object
-            x-kubernetes-map-type: atomic
-            x-kubernetes-preserve-unknown-fields: true
-          status:
-            type: object
-            x-kubernetes-map-type: atomic
-            x-kubernetes-preserve-unknown-fields: true
-        required:
-        - metadata
-        - spec
-        type: object
-    served: true
-    storage: true
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -231,7 +185,6 @@ spec:
             type: object
           spec:
             type: object
-            x-kubernetes-map-type: atomic
             x-kubernetes-preserve-unknown-fields: true
         required:
         - metadata
@@ -302,8 +255,6 @@ rules:
   resources:
   - workflows
   - workflows/finalizers
-  - workflowtasksets
-  - workflowtasksets/finalizers
   verbs:
   - get
   - list
@@ -478,31 +429,12 @@ rules:
   verbs:
   - create
 - apiGroups:
-  - ""
-  resources:
-  - configmaps
-  verbs:
-  - create
-  - get
-  - update
-- apiGroups:
   - argoproj.io
   resources:
   - workflows
   verbs:
   - create
   - get
-- apiGroups:
-  - argoproj.io
-  resources:
-  - workflowtasksets
-  - workflowtasksets/finalizers
-  verbs:
-  - list
-  - watch
-  - get
-  - update
-  - patch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -673,6 +605,7 @@ metadata:
 apiVersion: v1
 data:
   artifactRepository: |
+    archiveLogs: true
     s3:
       bucket: my-bucket
       endpoint: minio:9000
@@ -683,30 +616,18 @@ data:
       secretKeySecret:
         name: my-minio-cred
         key: secretkey
-  containerRuntimeExecutor: docker
+  # containerRuntimeExecutor: docker
+  containerRuntimeExecutor: pns
   containerRuntimeExecutors: |
     - name: k8sapi
       selector:
         matchLabels:
           workflows.argoproj.io/container-runtime-executor: k8sapi
-    - name: emissary
-      selector:
-        matchLabels:
-          workflows.argoproj.io/container-runtime-executor: emissary
   executor: |
     resources:
       requests:
         cpu: 10m
         memory: 64Mi
-  images: |
-    argoproj/argosay:v1:
-      command: [cowsay]
-    argoproj/argosay:v2:
-      command: [/argosay]
-    docker/whalesay:latest:
-       command: [cowsay]
-    python:alpine3.6:
-       command: [python3]
   links: |
     - name: Workflow Link
       scope: workflow
@@ -724,10 +645,10 @@ data:
       scope: sensor-logs
       url: http://logging-facility?namespace=${metadata.namespace}&podName=${metadata.name}&startedAt=${status.startedAt}&finishedAt=${status.finishedAt}
   metricsConfig: |
+    disableLegacy: true
     enabled: true
     path: /metrics
     port: 9090
-  namespaceParallelism: "10"
   persistence: |
     connectionPool:
       maxIdleConns: 100
@@ -784,7 +705,7 @@ stringData:
   github.com: |
     type: github
     secret: "shh!"
-  gitlab.com: |-
+  gitlab.com: |
     type: gitlab
     secret: "shh!"
 ---
@@ -842,8 +763,6 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  labels:
-    app: workflow-controller
   name: workflow-controller-metrics
 spec:
   ports:
@@ -875,7 +794,7 @@ spec:
         - server
         - --auth-mode
         - client
-        image: quay.io/argoproj/argocli:latest
+        image: argoproj/argocli:v3.0.3
         name: argo-server
         ports:
         - containerPort: 2746
@@ -1007,7 +926,7 @@ spec:
         - --configmap
         - workflow-controller-configmap
         - --executor-image
-        - quay.io/argoproj/argoexec:latest
+        - argoproj/argoexec:v3.0.3
         - --namespaced
         command:
         - workflow-controller
@@ -1017,27 +936,21 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.name
-        image: quay.io/argoproj/workflow-controller:latest
+        image: argoproj/workflow-controller:v3.0.3
         livenessProbe:
-          failureThreshold: 3
           httpGet:
-            path: /healthz
-            port: 6060
-          initialDelaySeconds: 90
-          periodSeconds: 60
-          timeoutSeconds: 30
+            path: /metrics
+            port: metrics
+          initialDelaySeconds: 30
+          periodSeconds: 30
         name: workflow-controller
         ports:
         - containerPort: 9090
           name: metrics
-        - containerPort: 6060
         securityContext:
-          allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
       nodeSelector:
         kubernetes.io/os: linux
       securityContext:

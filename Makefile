@@ -11,6 +11,7 @@ up-kind: ## setup local kind cluster. Install argo workflows and run workflow
 	@bash -c "kind create cluster --name argo --config infra/local/kind-config-with-mounts.yaml"
 	@bash -c "kubectl create ns argo"
 	@bash -c "kubectl apply -n argo -f infra/local/quick-start-postgres.yaml"
+	@bash -c "kubectl -n argo create rolebinding default-admin --clusterrole=admin --serviceaccount=argo:default"
 	@bash -c "echo 'kubectl -n argo port-forward deployment.apps/argo-server 2746:2746'"	
 	@bash -c "echo 'This will serve the user interface on https://localhost:2746'"
 	@bash -c "echo 'To get past chome notice type:  thisisunsafe'"
