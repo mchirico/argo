@@ -27,7 +27,7 @@ down: ## tear down local kind cluster
 
 .PHONY: down2
 down2: ## tear down local kind cluster2
-	kind delete cluster --name argo
+	kind delete cluster --name argo2
 
 
 .PHONY: latest
@@ -35,5 +35,6 @@ latest: ## latest version
 	cd infra/site && ./create.sh
 	kind create cluster --name argo2 --config infra/site/kind-config-with-mounts.yaml
 	kubectl create ns argo
-	kubectl apply -n argo -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/install.yaml
+	kubectl apply -n argo -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/quick-start-postgres.yaml
+	kubectl -n argo create rolebinding default-admin --clusterrole=admin --serviceaccount=argo:default
 
