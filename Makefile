@@ -8,8 +8,8 @@ help: ## display make targets
 
 
 
-.PHONY: up-kind
-up-kind: ## setup local kind cluster. Install argo workflows and run workflow
+.PHONY: up
+up: ## setup local kind cluster. Install argo workflows and run workflow
 	cd infra/local && ./create.sh
 	kind create cluster --name argo --config infra/local/kind-config-with-mounts.yaml
 	kubectl create ns argo
@@ -20,8 +20,8 @@ up-kind: ## setup local kind cluster. Install argo workflows and run workflow
 	echo 'To get past chome notice type:  thisisunsafe'
 	kubectl get pods -n argo --watch
 
-.PHONY: down-kind
-down-kind: ## tear down local kind cluster
+.PHONY: down
+down: ## tear down local kind cluster
 	kind delete cluster --name argo
 
 
