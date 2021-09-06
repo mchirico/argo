@@ -3,7 +3,7 @@
 
 default: help
 help: ## display make targets
-	grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(word 1, $(MAKEFILE_LIST)) | \
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(word 1, $(MAKEFILE_LIST)) | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m make %-20s ... %s\n\033[0m", $$1, $$2}'
 
 
@@ -25,11 +25,15 @@ down: ## tear down local kind cluster
 	kind delete cluster --name argo
 
 
-.PHONY: why-not-work
-why-not-work: ## rights issues on site
+.PHONY: down2
+down2: ## tear down local kind cluster2
+	kind delete cluster --name argo
+
+
+.PHONY: latest
+latest: ## latest version
 	cd infra/site && ./create.sh
-	kind create cluster --name argo --config infra/site/kind-config-with-mounts.yaml
+	kind create cluster --name argo2 --config infra/site/kind-config-with-mounts.yaml
 	kubectl create ns argo
-	kubectl apply -n argo -f infra/site/install.yaml
-	kubectl apply -n argo -f infra/site/quick-start-postgres.yaml
-	kubectl -n argo create rolebinding default-admin --clusterrole=admin --serviceaccount=argo:default
+	kubectl apply -n argo -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/install.yaml
+
