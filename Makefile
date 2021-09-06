@@ -35,6 +35,6 @@ latest: ## latest version
 	cd infra/site && ./create.sh
 	kind create cluster --name argo2 --config infra/site/kind-config-with-mounts.yaml
 	kubectl create ns argo
-	kubectl apply -n argo -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/manifests/quick-start-postgres.yaml
+	kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/download/v3.1.9/install.yaml
 	kubectl -n argo create rolebinding default-admin --clusterrole=admin --serviceaccount=argo:default
 
