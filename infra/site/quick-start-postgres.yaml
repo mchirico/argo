@@ -1032,12 +1032,11 @@ spec:
           name: metrics
         - containerPort: 6060
         securityContext:
-          allowPrivilegeEscalation: false
+          allowPrivilegeEscalation: true
           capabilities:
             drop:
             - ALL
-          readOnlyRootFilesystem: true
-          runAsNonRoot: true
+          readOnlyRootFilesystem: false
       nodeSelector:
         kubernetes.io/os: linux
       securityContext:

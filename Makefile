@@ -39,3 +39,6 @@ latest: ## latest version
 	kubectl -n argo create rolebinding default-admin --clusterrole=admin --serviceaccount=argo:default
 
 
+.PHONY: examples
+examples: ## examples
+	argo submit -n argo --watch https://raw.githubusercontent.com/argoproj/argo-workflows/master/examples/coinflip-recursive.yaml
