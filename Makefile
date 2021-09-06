@@ -7,6 +7,9 @@ help: ## display make targets
 		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m make %-20s ... %s\n\033[0m", $$1, $$2}'
 
 
+.PHONY: install
+install: ## Basic install
+	go install sigs.k8s.io/kind@latest
 
 .PHONY: up
 up: ## setup local kind cluster. Install argo workflows and run workflow
