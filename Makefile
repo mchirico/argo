@@ -45,3 +45,5 @@ latest: ## latest version
 .PHONY: examples
 examples: ## examples
 	argo submit -n argo --watch https://raw.githubusercontent.com/argoproj/argo-workflows/master/examples/coinflip-recursive.yaml
+	argo list -n argo
+	
